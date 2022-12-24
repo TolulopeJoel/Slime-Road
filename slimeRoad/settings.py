@@ -40,7 +40,10 @@ INSTALLED_APPS = [
     
     # local apps
     'shop.apps.ShopConfig',
+    'accounts.apps.AccountsConfig',
 ]
+
+AUTH_USER_MODEL = 'accounts.Creator'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
