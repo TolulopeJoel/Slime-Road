@@ -1,8 +1,11 @@
-from django.shortcuts import render, get_object_or_404
-from .models import Product
+from django.contrib import messages
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 
 from accounts.models import Creator
-from django.contrib.auth import get_user_model
+from orders.forms import OrderCreateForm
+
+from .models import Product
 
 
 def creator_product_list(request, creator_id):
@@ -15,6 +18,27 @@ def creator_product_list(request, creator_id):
 def product_detail(request, id, slug, creator_id):
     creator = Creator.objects.get(id=creator_id)
     product = get_object_or_404(Product, id=id, slug=slug)
-    cart_product_form = 'pass'
     
+    if request.method == 'POST':
+        form = OrderCreateForm(request.POST) 
+    
+        if form.is_valid():
+            order = form.save(commit=False)
+            order.product = product
+            order.paid = False
+            
+            payment_price = order.price
+            product_price = product.price
+
+            if product_price == 0.00:
+                    form.save()
+                    # return redirect(reverse('payment:process'))
+            elif payment_price >= product_price:
+                    form.save()
+                    # return redirect(reverse('payment:process'))
+            else:
+                messages.error(request, f'{payment_price} lower than product\'s price {product_price}')
+    else:
+        form = OrderCreateForm()
+
     return render(request, 'shop/product/detail.html', locals())
